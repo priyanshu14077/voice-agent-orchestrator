@@ -12,3 +12,4 @@ export * from "./debounce.js";
 export * from "./circular-buffer.js";
 export * from "./cache.js";
 export * from "./formatters.js";
+export * from "./async-queue.js";
