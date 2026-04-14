@@ -7,3 +7,4 @@ export * from "./config.js";
 export * from "./shutdown.js";
 export * from "./vad-utils.js";
 export * from "./http-adapter.js";
+export * from "./rate-limiter.js";
