@@ -9,3 +9,4 @@ export * from "./vad-utils.js";
 export * from "./http-adapter.js";
 export * from "./rate-limiter.js";
 export * from "./debounce.js";
+export * from "./circular-buffer.js";
