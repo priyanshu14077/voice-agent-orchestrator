@@ -13,3 +13,4 @@ export * from "./circular-buffer.js";
 export * from "./cache.js";
 export * from "./formatters.js";
 export * from "./async-queue.js";
+export * from "./emitter.js";
