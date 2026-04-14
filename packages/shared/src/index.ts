@@ -4,3 +4,5 @@ export * from "./interrupt-handler.js";
 export * from "./audio-pipeline.js";
 export * from "./retry.js";
 export * from "./config.js";
+export * from "./shutdown.js";
+export * from "./vad-utils.js";
