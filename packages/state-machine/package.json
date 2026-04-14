@@ -1,0 +1,15 @@
+{
+  "name": "@voice-agent/state-machine",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@voice-agent/shared": "workspace:*",
+    "xstate": "^5.18.2"
+  }
+}

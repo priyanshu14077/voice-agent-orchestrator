@@ -1,0 +1,23 @@
+{
+  "name": "@voice-agent/orchestrator",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup src/index.ts --format esm --dts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@voice-agent/shared": "workspace:*",
+    "@voice-agent/state-machine": "workspace:*",
+    "@xstate/store": "^3.9.2",
+    "dotenv": "^16.4.7",
+    "groq-sdk": "^0.24.0",
+    "ws": "^8.18.1",
+    "xstate": "^5.18.2",
+    "zod": "^3.24.2"
+  }
+}
