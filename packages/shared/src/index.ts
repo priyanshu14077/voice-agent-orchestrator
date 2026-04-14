@@ -17,3 +17,4 @@ export * from "./emitter.js";
 export * from "./phone-utils.js";
 export * from "./validation.js";
 export * from "./async-utils.js";
+export * from "./object-utils.js";
