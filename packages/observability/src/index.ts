@@ -3,6 +3,9 @@ import type { Logger } from "./logger.js";
 export { ConsoleLogger, createLogger } from "./logger.js";
 export type { LogLevel, LogEntry, Logger } from "./logger.js";
 
+export { LatencyTracker, createLatencyTracker } from "./latency-tracker.js";
+export type { LatencyRecord } from "./latency-tracker.js";
+
 export interface Metrics {
   increment(name: string, value?: number): void;
   decrement(name: string, value?: number): void;
