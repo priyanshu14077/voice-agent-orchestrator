@@ -181,11 +181,16 @@ export class OrchestratorServer {
   }
 }
 
+const apiKey = process.env.GROQ_API_KEY;
+if (!apiKey || apiKey.trim().length === 0) {
+  throw new Error("GROQ_API_KEY environment variable is required but not set");
+}
+
 const port = Number(process.env.ORCHESTRATOR_PORT ?? 8090);
 const orchestrator = new OrchestratorServer({
   port,
   llm: {
-    apiKey: process.env.GROQ_API_KEY,
+    apiKey,
     model: process.env.GROQ_MODEL
   },
   tts: {

@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 export interface AsyncQueueItem<T> {
   id: string;
   data: T;
@@ -17,8 +19,9 @@ export class AsyncQueue<T> {
 
   async enqueue<R = unknown>(data: T): Promise<R> {
     return new Promise((resolve, reject) => {
+      const randomSuffix = randomBytes(6).toString("hex");
       this.queue.push({
-        id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        id: `${Date.now()}_${randomSuffix}`,
         data,
         resolve: resolve as (value: unknown) => void,
         reject

@@ -22,7 +22,11 @@ export interface OrchestratorAppOptions {
 }
 
 export const createOrchestratorApp = (options: OrchestratorAppOptions = {}) => {
-  const llm = new GroqLlmClient(options.llm?.apiKey ?? "", options.llm?.model);
+  const apiKey = options.llm?.apiKey;
+  if (!apiKey || apiKey.trim().length === 0) {
+    throw new Error("LLM API key is required but not provided");
+  }
+  const llm = new GroqLlmClient(apiKey, options.llm?.model);
   const toolRunner = new ToolRunner();
   const tts = new ElevenLabsClient(options.tts);
 

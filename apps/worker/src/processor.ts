@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 export type JobType = "send_whatsapp" | "generate_summary" | "process_callback" | "cleanup_session";
 
 export interface Job<T = unknown> {
@@ -29,7 +31,7 @@ export class JobQueue {
 
   async enqueue<T>(type: JobType, payload: T, options?: { maxAttempts?: number; delayMs?: number }): Promise<Job> {
     const job: Job<T> = {
-      id: `job_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+      id: `job_${randomUUID()}`,
       type,
       payload,
       attempts: 0,

@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 export interface LatencyRecord {
   stage: string;
   startTime: number;
@@ -11,7 +13,8 @@ export class LatencyTracker {
   private activeRecords = new Map<string, LatencyRecord>();
 
   start(stage: string, metadata?: Record<string, unknown>): string {
-    const id = `${stage}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const randomSuffix = randomBytes(4).toString("hex");
+    const id = `${stage}_${Date.now()}_${randomSuffix}`;
     const record: LatencyRecord = {
       stage,
       startTime: Date.now(),
