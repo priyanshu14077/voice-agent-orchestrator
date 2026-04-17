@@ -1,4 +1,20 @@
-import type { CollectionsStateId, Intent, SessionState } from "@voice-agent/shared";
+export type Intent =
+  | "WILL_PAY"
+  | "HESITANT"
+  | "DISPUTE"
+  | "NO_RESPONSE"
+  | "LANGUAGE_SWITCH"
+  | "UNKNOWN";
+
+export type CollectionsStateId =
+  | "greeting"
+  | "situation_assessment"
+  | "repayment_offer"
+  | "negotiation"
+  | "promise_to_pay"
+  | "escalation"
+  | "voicemail"
+  | "language_switch";
 
 export interface CollectionsIntentEvent {
   type: "INTENT_REPORTED";
@@ -71,14 +87,3 @@ export const resolveCollectionsState = (
 
 export const isTerminalState = (state: CollectionsStateId): boolean =>
   state === "promise_to_pay" || state === "escalation" || state === "voicemail";
-
-export const updateSessionLanguage = (
-  session: SessionState,
-  event: CollectionsIntentEvent
-): SessionState => {
-  if (event.entities?.language) {
-    session.language = event.entities.language;
-  }
-
-  return session;
-};

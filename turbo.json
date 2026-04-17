@@ -3,9 +3,11 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      "inputs": ["src/**", "package.json"]
     },
     "dev": {
+      "dependsOn": ["build"],
       "cache": false,
       "persistent": true
     },

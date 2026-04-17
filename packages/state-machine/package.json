@@ -9,7 +9,6 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@voice-agent/shared": "workspace:*",
     "xstate": "^5.18.2"
   }
 }

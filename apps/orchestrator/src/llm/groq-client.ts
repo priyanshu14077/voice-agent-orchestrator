@@ -1,7 +1,27 @@
 import Groq from "groq-sdk";
 import { z } from "zod";
 
-import type { CollectionsStateId, LlmOutput, SessionState } from "@voice-agent/shared";
+export interface LlmOutput {
+  response: string;
+  intent: string;
+  entities: {
+    amount?: number | null;
+    date?: string | null;
+    language?: "en" | "hi" | null;
+  };
+  tool?: "log_promise_to_pay" | "schedule_followup" | "flag_dispute" | null;
+}
+
+export interface SessionState {
+  callId: string;
+  state: string;
+  transcripts: string[];
+  partialTranscript: string;
+  language: "en" | "hi";
+  lastSpeechAt: number;
+  createdAt: number;
+  updatedAt: number;
+}
 
 const schema = z.object({
   response: z.string(),
@@ -25,7 +45,7 @@ export class GroqLlmClient {
 
   async generateStructuredResponse(input: {
     transcript: string;
-    state: CollectionsStateId;
+    state: string;
     session: SessionState;
   }): Promise<LlmOutput> {
     const completion = await this.client.chat.completions.create({

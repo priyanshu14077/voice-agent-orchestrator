@@ -1,19 +1,29 @@
-import type {
-  VoiceEvent,
-  SessionState,
-  TranscriptFinalEvent,
-  TranscriptPartialEvent,
-  SpeechStartEvent,
-  SpeechEndEvent
-} from "@voice-agent/shared";
+export type VoiceEvent =
+  | { type: "SPEECH_START"; timestamp: number }
+  | { type: "SPEECH_END"; timestamp: number }
+  | { type: "TRANSCRIPT_PARTIAL"; text: string; timestamp: number }
+  | { type: "TRANSCRIPT_FINAL"; text: string; timestamp: number }
+  | { type: "LLM_RESPONSE"; payload: unknown; timestamp: number }
+  | { type: "TTS_CHUNK"; audio: unknown; timestamp: number };
+
+export interface SessionState {
+  callId: string;
+  state: string;
+  transcripts: string[];
+  partialTranscript: string;
+  language: "en" | "hi";
+  lastSpeechAt: number;
+  createdAt: number;
+  updatedAt: number;
+}
 
 export type EventHandler = (event: VoiceEvent, session: SessionState) => Promise<SessionState>;
 
 export interface EventRouterOptions {
-  onTranscript?: (event: TranscriptFinalEvent, session: SessionState) => Promise<void>;
-  onSpeechStart?: (event: SpeechStartEvent, session: SessionState) => Promise<void>;
-  onSpeechEnd?: (event: SpeechEndEvent, session: SessionState) => Promise<void>;
-  onPartial?: (event: TranscriptPartialEvent, session: SessionState) => Promise<void>;
+  onTranscript?: (event: { type: "TRANSCRIPT_FINAL"; text: string; timestamp: number }, session: SessionState) => Promise<void>;
+  onSpeechStart?: (event: { type: "SPEECH_START"; timestamp: number }, session: SessionState) => Promise<void>;
+  onSpeechEnd?: (event: { type: "SPEECH_END"; timestamp: number }, session: SessionState) => Promise<void>;
+  onPartial?: (event: { type: "TRANSCRIPT_PARTIAL"; text: string; timestamp: number }, session: SessionState) => Promise<void>;
 }
 
 export class EventRouter {
@@ -27,23 +37,24 @@ export class EventRouter {
 
   private registerDefaults(): void {
     this.register("TRANSCRIPT_FINAL", async (event, session) => {
-      await this.options.onTranscript?.(event as TranscriptFinalEvent, session);
+      const e = event as { type: "TRANSCRIPT_FINAL"; text: string; timestamp: number };
+      await this.options.onTranscript?.(e, session);
       return session;
     });
 
     this.register("TRANSCRIPT_PARTIAL", async (event, session) => {
-      await this.options.onPartial?.(event as TranscriptPartialEvent, session);
-      session.partialTranscript = (event as TranscriptPartialEvent).text;
+      await this.options.onPartial?.(event as any, session);
+      session.partialTranscript = (event as any).text;
       return session;
     });
 
     this.register("SPEECH_START", async (event, session) => {
-      await this.options.onSpeechStart?.(event as SpeechStartEvent, session);
+      await this.options.onSpeechStart?.(event as any, session);
       return session;
     });
 
     this.register("SPEECH_END", async (event, session) => {
-      await this.options.onSpeechEnd?.(event as SpeechEndEvent, session);
+      await this.options.onSpeechEnd?.(event as any, session);
       return session;
     });
   }

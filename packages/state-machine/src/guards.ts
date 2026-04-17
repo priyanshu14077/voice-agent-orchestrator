@@ -1,3 +1,1 @@
-import type { Intent } from "@voice-agent/shared";
-
-export const isIntent = (actual: Intent, expected: Intent): boolean => actual === expected;
+export const isIntent = (actual: string, expected: string): boolean => actual === expected;

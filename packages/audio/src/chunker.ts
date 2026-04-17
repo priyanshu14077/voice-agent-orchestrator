@@ -33,7 +33,7 @@ export class AudioChunker {
     return chunks;
   }
 
-  *chunkStream(readable: Readable, chunkSize?: number): Generator<AudioChunk> {
+  async *chunkStream(readable: Readable, chunkSize?: number): AsyncGenerator<AudioChunk> {
     const size = chunkSize ?? this.defaultChunkSize;
     let buffer = Buffer.alloc(0);
     let index = 0;

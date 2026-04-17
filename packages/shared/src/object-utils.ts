@@ -17,44 +17,50 @@ export const deepClone = <T>(obj: T): T => {
   if (obj instanceof Date) return new Date(obj.getTime()) as unknown as T;
   if (Array.isArray(obj)) return obj.map(deepClone) as unknown as T;
   if (isObject(obj)) {
-    const cloned = {} as T;
+    const cloned: Record<string, unknown> = {};
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        cloned[key] = deepClone(obj[key]);
+        cloned[key] = deepClone((obj as Record<string, unknown>)[key]);
       }
     }
-    return cloned;
+    return cloned as unknown as T;
   }
   return obj;
 };
 
-export const deepMerge = <T extends Record<string, unknown>>(target: T, source: Partial<T>): T => {
-  const result = { ...target };
+export const deepMerge = <T extends Record<string, unknown>>(
+  target: T,
+  source: Partial<T>
+): T => {
+  const result: Record<string, unknown> = { ...target };
   for (const key in source) {
     if (Object.prototype.hasOwnProperty.call(source, key)) {
-      const sourceVal = source[key];
-      const targetVal = result[key];
+      const sourceVal = (source as Record<string, unknown>)[key];
+      const targetVal = (result as Record<string, unknown>)[key];
       if (isObject(sourceVal) && isObject(targetVal)) {
-        result[key] = deepMerge(targetVal, sourceVal);
+        (result as Record<string, unknown>)[key] = deepMerge(
+          targetVal as Record<string, unknown>,
+          sourceVal as Record<string, unknown>
+        );
       } else {
-        result[key] = sourceVal as T[keyof T];
+        (result as Record<string, unknown>)[key] = sourceVal;
       }
     }
   }
-  return result;
+  return result as T;
 };
 
 export const pick = <T extends Record<string, unknown>, K extends keyof T>(
   obj: T,
   keys: K[]
 ): Pick<T, K> => {
-  const result = {} as Pick<T, K>;
+  const result: Partial<Pick<T, K>> = {};
   for (const key of keys) {
     if (key in obj) {
       result[key] = obj[key];
     }
   }
-  return result;
+  return result as Pick<T, K>;
 };
 
 export const omit = <T extends Record<string, unknown>, K extends keyof T>(
@@ -65,5 +71,5 @@ export const omit = <T extends Record<string, unknown>, K extends keyof T>(
   for (const key of keys) {
     delete result[key];
   }
-  return result;
+  return result as Omit<T, K>;
 };

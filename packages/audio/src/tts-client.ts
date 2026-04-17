@@ -28,7 +28,7 @@ export interface StreamCallbacks {
 export class TtsClient {
   private readonly apiKey?: string;
   private readonly baseUrl: string;
-  private readonly defaultVoiceId: string;
+  private defaultVoiceId: string;
   private readonly defaultModel: string;
 
   constructor(options: TtsClientOptions = {}) {

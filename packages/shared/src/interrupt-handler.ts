@@ -1,5 +1,3 @@
-import type { SessionState } from "@voice-agent/shared";
-
 export interface InterruptContext {
   callId: string;
   interruptedAt: number;

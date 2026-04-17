@@ -1,4 +1,4 @@
-import type { pg } from "pg";
+import { Pool, type PoolClient, type QueryResult } from "pg";
 
 export interface CallRecord {
   id: string;
@@ -60,7 +60,7 @@ export interface QueryBuilder {
 }
 
 export class PostgresQueryBuilder implements QueryBuilder {
-  constructor(private readonly pool: pg.Pool) {}
+  constructor(private readonly pool: Pool) {}
 
   async insertCall(callId: string, borrowerId: string, phoneNumber: string): Promise<CallRecord> {
     const result = await this.pool.query<CallRecord>(
@@ -175,6 +175,6 @@ export class PostgresQueryBuilder implements QueryBuilder {
   }
 }
 
-export const createQueryBuilder = (pool: pg.Pool): QueryBuilder => {
+export const createQueryBuilder = (pool: Pool): QueryBuilder => {
   return new PostgresQueryBuilder(pool);
 };

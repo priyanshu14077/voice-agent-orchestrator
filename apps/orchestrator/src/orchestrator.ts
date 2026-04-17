@@ -1,16 +1,69 @@
-import {
-  resolveCollectionsState,
-  updateSessionLanguage,
-  type CollectionsIntentEvent
-} from "@voice-agent/state-machine";
-import type { LlmOutput, SessionState, TranscriptFinalEvent, VoiceEvent } from "@voice-agent/shared";
+export interface CollectionsIntentEvent {
+  type: "INTENT_REPORTED";
+  intent: string;
+  transcript: string;
+  entities?: {
+    amount?: number | null;
+    date?: string | null;
+    language?: "en" | "hi" | null;
+  };
+}
 
-import { GroqLlmClient } from "./llm/groq-client.js";
-import { ToolRunner } from "./tool-runner.js";
+export interface LlmOutput {
+  response: string;
+  intent: string;
+  entities: {
+    amount?: number | null;
+    date?: string | null;
+    language?: "en" | "hi" | null;
+  };
+  tool?: "log_promise_to_pay" | "schedule_followup" | "flag_dispute" | null;
+}
+
+export interface SessionState {
+  callId: string;
+  state: string;
+  transcripts: string[];
+  partialTranscript: string;
+  language: "en" | "hi";
+  lastSpeechAt: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type VoiceEvent =
+  | { type: "SPEECH_START"; timestamp: number }
+  | { type: "SPEECH_END"; timestamp: number }
+  | { type: "TRANSCRIPT_PARTIAL"; text: string; timestamp: number }
+  | { type: "TRANSCRIPT_FINAL"; text: string; timestamp: number };
+
+const collectionsInitialState = "greeting";
+
+const collectionsTransitionTable: Record<string, Record<string, string>> = {
+  greeting: {
+    WILL_PAY: "promise_to_pay",
+    HESITANT: "situation_assessment",
+    DISPUTE: "escalation",
+    NO_RESPONSE: "voicemail"
+  },
+  situation_assessment: {
+    WILL_PAY: "repayment_offer",
+    HESITANT: "negotiation",
+    DISPUTE: "escalation"
+  },
+  negotiation: {
+    WILL_PAY: "promise_to_pay"
+  }
+};
+
+const resolveCollectionsState = (currentState: string, event: CollectionsIntentEvent): string => {
+  const byIntent = collectionsTransitionTable[currentState];
+  return byIntent?.[event.intent] ?? currentState;
+};
 
 export interface OrchestratorDependencies {
-  llm: GroqLlmClient;
-  toolRunner: ToolRunner;
+  llm: { generateStructuredResponse(input: unknown): Promise<LlmOutput> };
+  toolRunner: { run(output: LlmOutput, session: SessionState): Promise<unknown> };
   tts: {
     speak(callId: string, text: string): Promise<void>;
     interrupt(callId: string): Promise<void>;
@@ -18,7 +71,7 @@ export interface OrchestratorDependencies {
 }
 
 export class Orchestrator {
-  constructor(private readonly deps: OrchestratorDependencies) {}
+  constructor(private deps: OrchestratorDependencies) {}
 
   async handle(event: VoiceEvent, session: SessionState): Promise<SessionState> {
     session.updatedAt = Date.now();
@@ -52,28 +105,24 @@ export class Orchestrator {
       session
     });
 
-    await this.applyLlmOutput(llmOutput, session, event);
-    return session;
-  }
-
-  private async applyLlmOutput(
-    output: LlmOutput,
-    session: SessionState,
-    event: TranscriptFinalEvent
-  ): Promise<void> {
     const intentEvent: CollectionsIntentEvent = {
       type: "INTENT_REPORTED",
-      intent: output.intent,
+      intent: llmOutput.intent,
       transcript: event.text,
-      entities: output.entities
+      entities: llmOutput.entities
     };
 
     session.state = resolveCollectionsState(session.state, intentEvent);
-    updateSessionLanguage(session, intentEvent);
 
-    session.transcripts.push(`agent: ${output.response}`);
+    if (intentEvent.entities?.language) {
+      session.language = intentEvent.entities.language;
+    }
 
-    await this.deps.toolRunner.run(output, session);
-    await this.deps.tts.speak(session.callId, output.response);
+    session.transcripts.push(`agent: ${llmOutput.response}`);
+
+    await this.deps.toolRunner.run(llmOutput, session);
+    await this.deps.tts.speak(session.callId, llmOutput.response);
+
+    return session;
   }
 }

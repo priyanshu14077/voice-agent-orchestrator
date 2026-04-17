@@ -3,9 +3,8 @@ import "dotenv/config";
 import { Orchestrator } from "./orchestrator.js";
 import { createEventRouter, type EventRouterOptions } from "./event-router.js";
 import { ElevenLabsClient, type ElevenLabsOptions } from "./tts/eleven-labs-client.js";
-import { GroqLlmClient, type GroqLlmClientOptions } from "./llm/groq-client.js";
+import { GroqLlmClient } from "./llm/groq-client.js";
 import { ToolRunner } from "./tool-runner.js";
-import type { VoiceEvent, SessionState } from "@voice-agent/shared";
 
 export { Orchestrator } from "./orchestrator.js";
 export { EventRouter, createEventRouter } from "./event-router.js";
@@ -13,12 +12,11 @@ export type { EventRouterOptions, EventHandler } from "./event-router.js";
 export { ElevenLabsClient, createElevenLabsClient } from "./tts/eleven-labs-client.js";
 export type { ElevenLabsOptions, TtsClient, TtsResponse } from "./tts/eleven-labs-client.js";
 export { GroqLlmClient } from "./llm/groq-client.js";
-export type { GroqLlmClientOptions } from "./llm/groq-client.js";
 export { ToolRunner } from "./tool-runner.js";
 export type { OrchestratorDependencies } from "./orchestrator.js";
 
 export interface OrchestratorAppOptions {
-  llm?: GroqLlmClientOptions & { apiKey?: string };
+  llm?: { apiKey?: string; model?: string };
   tts?: ElevenLabsOptions & { apiKey?: string };
   eventRouter?: EventRouterOptions;
 }
@@ -45,5 +43,3 @@ export const createOrchestratorApp = (options: OrchestratorAppOptions = {}) => {
 
   return { orchestrator, eventRouter, tts, llm, toolRunner };
 };
-
-export type { VoiceEvent, SessionState };

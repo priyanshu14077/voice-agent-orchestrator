@@ -4,6 +4,17 @@ import { SessionStore, type SessionStoreOptions } from "./session-store.js";
 export { RedisClient, type RedisClientOptions } from "./redis-client.js";
 export { SessionStore, type SessionStoreOptions } from "./session-store.js";
 
+export interface SessionState {
+  callId: string;
+  state: string;
+  transcripts: string[];
+  partialTranscript: string;
+  language: "en" | "hi";
+  lastSpeechAt: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface SessionManagerOptions {
   redis: RedisClient;
   storeOptions?: SessionStoreOptions;

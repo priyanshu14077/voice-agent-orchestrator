@@ -1,4 +1,4 @@
-import pg from "pg";
+import { Pool, PoolClient, QueryResult } from "pg";
 
 export interface PostgresClientOptions {
   host?: string;
@@ -13,7 +13,7 @@ export interface PostgresClientOptions {
 }
 
 export class PostgresClient {
-  private pool: pg.Pool | null = null;
+  private pool: Pool | null = null;
   private readonly options: PostgresClientOptions;
 
   constructor(options: PostgresClientOptions = {}) {
@@ -25,7 +25,7 @@ export class PostgresClient {
       return;
     }
 
-    this.pool = new pg.Pool({
+    this.pool = new Pool({
       connectionString: this.options.connectionString,
       host: this.options.host ?? "localhost",
       port: this.options.port ?? 5432,
@@ -34,7 +34,7 @@ export class PostgresClient {
       password: this.options.password,
       max: this.options.max ?? 20,
       idleTimeoutMillis: this.options.idleTimeoutMillis ?? 30000,
-      connectTimeoutMillis: this.options.connectTimeoutMillis ?? 5000
+      connectionTimeoutMillis: this.options.connectTimeoutMillis ?? 5000
     });
 
     this.pool.on("error", (err) => {
@@ -52,19 +52,19 @@ export class PostgresClient {
     }
   }
 
-  getPool(): pg.Pool {
+  getPool(): Pool {
     if (!this.pool) {
       throw new Error("Postgres client not connected. Call connect() first.");
     }
     return this.pool;
   }
 
-  async query<T = unknown>(text: string, params?: unknown[]): Promise<pg.QueryResult<T>> {
+  async query<T extends Record<string, unknown>>(text: string, params?: unknown[]): Promise<QueryResult<T>> {
     const pool = this.getPool();
     return pool.query<T>(text, params);
   }
 
-  async transaction<T>(fn: (client: pg.PoolClient) => Promise<T>): Promise<T> {
+  async transaction<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
     const pool = this.getPool();
     const client = await pool.connect();
 

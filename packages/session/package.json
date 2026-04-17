@@ -17,7 +17,6 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@voice-agent/shared": "workspace:*",
     "redis": "^4.7.0"
   },
   "devDependencies": {

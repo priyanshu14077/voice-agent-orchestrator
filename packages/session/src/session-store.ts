@@ -1,5 +1,15 @@
 import type { RedisClientType } from "redis";
-import type { SessionState, CollectionsStateId } from "@voice-agent/shared";
+
+export interface SessionState {
+  callId: string;
+  state: string;
+  transcripts: string[];
+  partialTranscript: string;
+  language: "en" | "hi";
+  lastSpeechAt: number;
+  createdAt: number;
+  updatedAt: number;
+}
 
 export interface SessionStoreOptions {
   defaultTtlSeconds?: number;
@@ -82,7 +92,7 @@ export class SessionStore {
     const key = this.key(callId);
     const ttl = ttlSeconds ?? this.defaultTtl;
     const result = await this.client.expire(key, ttl);
-    return result === 1;
+    return typeof result === "number" ? result === 1 : Boolean(result);
   }
 
   async listKeys(pattern: string = "*"): Promise<string[]> {

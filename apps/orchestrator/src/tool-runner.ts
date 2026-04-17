@@ -1,4 +1,30 @@
-import type { LlmOutput, SessionState, ToolResult } from "@voice-agent/shared";
+export interface LlmOutput {
+  response: string;
+  intent: string;
+  entities: {
+    amount?: number | null;
+    date?: string | null;
+    language?: "en" | "hi" | null;
+  };
+  tool?: "log_promise_to_pay" | "schedule_followup" | "flag_dispute" | null;
+}
+
+export interface SessionState {
+  callId: string;
+  state: string;
+  transcripts: string[];
+  partialTranscript: string;
+  language: "en" | "hi";
+  lastSpeechAt: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ToolResult {
+  ok: boolean;
+  tool: string;
+  payload: Record<string, unknown>;
+}
 
 export class ToolRunner {
   async run(output: LlmOutput, session: SessionState): Promise<ToolResult | null> {

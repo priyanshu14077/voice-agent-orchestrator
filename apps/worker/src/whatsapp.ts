@@ -70,7 +70,7 @@ export class WhatsAppClient {
       throw new Error(`WhatsApp API error: ${response.status} - ${error}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as { messages?: Array<{ id?: string }> };
 
     return {
       id: data.messages?.[0]?.id ?? `msg_${Date.now()}`,
@@ -127,7 +127,7 @@ export class WhatsAppClient {
       throw new Error(`WhatsApp template error: ${response.status} - ${error}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as { messages?: Array<{ id?: string }> };
 
     return {
       id: data.messages?.[0]?.id ?? `msg_${Date.now()}`,
