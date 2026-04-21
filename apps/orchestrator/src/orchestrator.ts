@@ -65,7 +65,7 @@ export interface OrchestratorDependencies {
   llm: { generateStructuredResponse(input: unknown): Promise<LlmOutput> };
   toolRunner: { run(output: LlmOutput, session: SessionState): Promise<unknown> };
   tts: {
-    speak(callId: string, text: string): Promise<void>;
+    speak(callId: string, text: string): Promise<Uint8Array>;
     interrupt(callId: string): Promise<void>;
   };
 }

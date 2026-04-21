@@ -1,25 +1,67 @@
-from __future__ import annotations
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+import numpy as np
+import torch
+import asyncio
+from contextlib import asynccontextmanager
+from typing import Optional
 
-from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from .vad import SileroVAD
 
-from app.vad import VadState
-
-
-class VadRequest(BaseModel):
-    energy: float = Field(ge=0.0, le=1.0)
-    frame_ms: int = Field(default=20, ge=10, le=200)
+vad_model: Optional[SileroVAD] = None
 
 
-app = FastAPI(title="voice-agent-vad")
-vad = VadState()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global vad_model
+    vad_model = await SileroVAD.create()
+    yield
+    vad_model = None
+
+
+app = FastAPI(title="VAD Service", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+async def health():
+    return {"status": "healthy", "model_loaded": vad_model is not None}
 
 
-@app.post("/vad")
-def detect_vad(payload: VadRequest) -> dict[str, bool | int]:
-    return vad.process(payload.energy, payload.frame_ms)
+@app.websocket("/vad")
+async def vad_stream(websocket: WebSocket):
+    await websocket.accept()
+    
+    if vad_model is None:
+        await websocket.send_json({"error": "VAD model not loaded"})
+        await websocket.close()
+        return
+
+    try:
+        while True:
+            data = await websocket.receive_bytes()
+            
+            audio_np = np.frombuffer(data, dtype=np.int16)
+            audio_float = audio_np.astype(np.float32) / 32768.0
+            
+            is_speaking = await vad_model.is_speaking(audio_float)
+            
+            await websocket.send_json({
+                "speaking": is_speaking,
+                "timestamp": torch.randint(0, 1000000, (1,)).item()
+            })
+            
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        try:
+            await websocket.send_json({"error": str(e)})
+        except:
+            pass
+        await websocket.close()

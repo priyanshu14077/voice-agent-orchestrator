@@ -1,4 +1,4 @@
-import type { Readable } from "node:stream";
+import { Buffer } from "node:buffer";
 
 export interface ElevenLabsOptions {
   apiKey?: string;
@@ -10,7 +10,7 @@ export interface ElevenLabsOptions {
 }
 
 export interface TtsResponse {
-  audio: Buffer;
+  audio: Uint8Array;
   duration: number;
 }
 
@@ -22,7 +22,7 @@ export interface TtsStreamOptions {
 
 export interface TtsClient {
   speak(callId: string, text: string): Promise<TtsResponse>;
-  stream(options: TtsStreamOptions): Promise<Readable>;
+  stream(options: TtsStreamOptions): AsyncIterable<Uint8Array>;
   interrupt(callId: string): Promise<void>;
 }
 
@@ -75,7 +75,7 @@ export class ElevenLabsClient implements TtsClient {
     return { audio, duration };
   }
 
-  async stream(options: TtsStreamOptions): Promise<Readable> {
+  async *stream(options: TtsStreamOptions): AsyncIterable<Uint8Array> {
     if (!this.apiKey) {
       throw new Error("ElevenLabs API key not configured");
     }
@@ -95,12 +95,22 @@ export class ElevenLabsClient implements TtsClient {
       })
     });
 
-    if (!response.ok) {
+    if (!response.ok || !response.body) {
       const error = await response.text();
       throw new Error(`ElevenLabs streaming TTS failed: ${response.status} - ${error}`);
     }
 
-    return response.body as unknown as Readable;
+    const reader = response.body.getReader();
+    
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        yield value;
+      }
+    } finally {
+      reader.releaseLock();
+    }
   }
 
   async interrupt(callId: string): Promise<void> {
@@ -111,7 +121,7 @@ export class ElevenLabsClient implements TtsClient {
     }
   }
 
-  private estimateDuration(audio: Buffer): number {
+  private estimateDuration(audio: Uint8Array): number {
     const bytesPerSample = 2;
     const sampleRate = 22050;
     const estimatedSeconds = audio.length / (bytesPerSample * sampleRate);

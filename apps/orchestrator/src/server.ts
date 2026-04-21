@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { Buffer } from "node:buffer";
 import { WebSocket, WebSocketServer, type RawData } from "ws";
 import "dotenv/config";
 
@@ -112,16 +113,16 @@ export class OrchestratorServer {
     }
   }
 
-  private async handleSpeak(callId: string, text: string): Promise<void> {
+  private async handleSpeak(callId: string, text: string): Promise<Uint8Array> {
     const sockets = this.getGatewaySockets();
     if (sockets.length === 0) {
       console.warn("[orchestrator] no gateway connected to send TTS");
-      return;
+      return new Uint8Array();
     }
 
     try {
       const response = await this.tts.speak(callId, text);
-      const audioBase64 = response.audio.toString("base64");
+      const audioBase64 = Buffer.from(response.audio).toString("base64");
 
       for (const socket of sockets) {
         if (socket.readyState === WebSocket.OPEN) {
@@ -134,8 +135,10 @@ export class OrchestratorServer {
           );
         }
       }
+      return response.audio;
     } catch (error) {
       console.error("[orchestrator:tts:error]", error);
+      return new Uint8Array();
     }
   }
 

@@ -30,17 +30,24 @@ export const createOrchestratorApp = (options: OrchestratorAppOptions = {}) => {
   const toolRunner = new ToolRunner();
   const tts = new ElevenLabsClient(options.tts);
 
+  const ttsCallbacks = {
+    speak: async (callId: string, text: string) => {
+      if (options.tts?.apiKey) {
+        const result = await tts.speak(callId, text);
+        return result.audio;
+      }
+      console.log("[tts:speak]", callId, text);
+      return new Uint8Array();
+    },
+    interrupt: async (_callId: string) => {
+      return;
+    }
+  };
+
   const orchestrator = new Orchestrator({
     llm,
     toolRunner,
-    tts: {
-      speak: async (callId: string, text: string) => {
-        console.log("[tts:speak]", callId, text);
-      },
-      interrupt: async (callId: string) => {
-        console.log("[tts:interrupt]", callId);
-      }
-    }
+    tts: ttsCallbacks
   });
 
   const eventRouter = createEventRouter(options.eventRouter);
